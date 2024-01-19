@@ -1,4 +1,4 @@
-# The code in this file generates the injury vairables only table
+# The code in this file generates the injury variables only table
 # This code will take in 1 argument from the command line:
 #   the first argument is the input file, which is expected to be a .csv
 #   containing patient identifiers and injury (ICD) codes
@@ -18,9 +18,6 @@ def main():
     thedict = json.load(dictfile)
     dictfile.close()
 
-    global NUM_INJURY_VAR
-    NUM_INJURY_VAR = len(thedict)
-
     incsv = open(sys.argv[1], "r")
     # header, ptrows = compare_serial(thedict, incsv)
     header, ptrows = compare_parallel(thedict, incsv)
@@ -31,6 +28,9 @@ def main():
 
 
 def compare_serial(dictionary, infile):
+    global NUM_INJURY_VAR
+    NUM_INJURY_VAR = len(dictionary)
+
     is_mortality_var_present(infile)
 
     rows = infile.readlines()
@@ -54,6 +54,9 @@ def compare_serial(dictionary, infile):
 
 
 def compare_parallel(dictionary, infile):
+    global NUM_INJURY_VAR
+    NUM_INJURY_VAR = len(dictionary)
+
     is_mortality_var_present(infile)
 
     rows = infile.readlines()

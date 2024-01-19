@@ -20,7 +20,7 @@ def main():
     xgbcomplete = XGBClassifier()
     xgbcomplete.load_model("model.json")
 
-    X_data = df.drop(['inc_key', 'mortality'], axis=1)
+    X_data = df.drop(['inc_key', 'mortality'], axis=1, errors='ignore')
 
     predicted_mortality = xgbcomplete.predict_proba(X_data)[:, 1]
 
