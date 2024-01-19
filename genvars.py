@@ -3,6 +3,10 @@
 #   the first argument is the input file, which is expected to be a .csv
 #   containing patient identifiers and injury (ICD) codes
 # This code will output a file called injury_variables_only.csv
+
+# Input file can either include or omit mortality variable. If training a new
+# model, mortality variable must be included. Otherwise, mortality variable can
+# be omitted.
 import csv
 import json
 import sys
@@ -27,11 +31,15 @@ def main():
 
 
 def compare_serial(dictionary, infile):
-    rows = infile.readlines()[1:]
+    is_mortality_var_present(infile)
+
+    rows = infile.readlines()
     ptrows = []
 
     # generate header line
-    header = ["inc_key", "mortality"]
+    header = ["inc_key"]
+    if MORTALITY_VAR_PRESENT:
+        header.append("mortality")
     for key in dictionary:
         header.append(key)
 
@@ -46,11 +54,15 @@ def compare_serial(dictionary, infile):
 
 
 def compare_parallel(dictionary, infile):
-    rows = infile.readlines()[1:]
+    is_mortality_var_present(infile)
+
+    rows = infile.readlines()
     ptrows = []
 
     # Generate header line
-    header = ["inc_key", "mortality"]
+    header = ["inc_key"]
+    if MORTALITY_VAR_PRESENT:
+        header.append("mortality")
     for key in dictionary:
         header.append(key)
 
@@ -69,27 +81,35 @@ def compare_parallel(dictionary, infile):
 
 def dictionary_lookup(row):
     ptrows = []
+    index = 0
 
     brokeoutearly = False
     row = row.strip()
     array = row.split(",")
 
     # Initialize template array. Length is number of variables +2 for patient
-    # ID and mortality variables
-    tmparray = [0] * (NUM_INJURY_VAR + 2)
-    tmparray[0] = int(array[0])     # patient identifier
-    tmparray[1] = int(array[-1])    # mortality variable
-
-    for diagnosis in array[1:]:
-        # index starts at 2 because first two columns are already filled with
-        # patient ID code and mortality
+    # ID and mortality variables. If statement to account for possibly omitted
+    # mortality variable.
+    if MORTALITY_VAR_PRESENT:
+        # Assumptions: patient ID is first item in list, mortality variable is
+        # the last element in the list
+        tmparray = [0] * (NUM_INJURY_VAR + 2)
+        tmparray[0] = int(array[0])
+        tmparray[1] = int(array[-1])
         index = 2
+    else:
+        tmparray = [0] * (NUM_INJURY_VAR + 1)
+        tmparray[0] = int(array[0])
+        index = 1
 
+    # Start at index 1 because it is assumed patient ID is the first item
+    for diagnosis in array[1:]:
+        tmpindex = index
         for key in GLOBALDICT:
             if diagnosis in GLOBALDICT[key]:
-                tmparray[index] = tmparray[index] + 1
+                tmparray[tmpindex] = tmparray[tmpindex] + 1
 
-            index += 1
+            tmpindex += 1
 
         # break out of the loop early to prevent unnecessary comparisons
         if diagnosis == '':
@@ -101,6 +121,15 @@ def dictionary_lookup(row):
         ptrows.append(tmparray)
 
     return ptrows
+
+
+def is_mortality_var_present(infile):
+    global MORTALITY_VAR_PRESENT
+
+    inputheader = infile.readline()
+    MORTALITY_VAR_PRESENT = 'mortality' in inputheader
+
+    return
 
 
 def write_table_csv(header, ptrows):
