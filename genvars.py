@@ -14,59 +14,33 @@ def main():
     thedict = json.load(dictfile)
     dictfile.close()
 
+    global NUM_INJURY_VAR
+    NUM_INJURY_VAR = len(thedict)
+
     incsv = open(sys.argv[1], "r")
-    # header, ptrows = compare(thedict, incsv)
+    # header, ptrows = compare_serial(thedict, incsv)
     header, ptrows = compare_parallel(thedict, incsv)
     incsv.close()
 
-    print(type(header))
-    print(ptrows)
-
-    # write_table_csv(header, ptrows)
+    write_table_csv(header, ptrows)
     return
 
 
 def compare_serial(dictionary, infile):
     rows = infile.readlines()[1:]
-
-    header = ["inc_key", "mortality"]
     ptrows = []
-    tmpcounter = 0
+
+    # generate header line
+    header = ["inc_key", "mortality"]
+    for key in dictionary:
+        header.append(key)
+
+    # create global variable for access within dictionary_lookup()
+    global GLOBALDICT
+    GLOBALDICT = dictionary
 
     for row in rows:
-        brokeoutearly = False
-        row = row.strip()
-        array = row.split(",")
-
-        tmparray = [0] * 1497
-        tmparray[0] = int(array[0])
-        tmparray[1] = int(array[-1])
-
-        for diagnosis in array[1:]:
-            # index starts at 2 because first two columns are already filled
-            index = 2
-
-            for key in dictionary:
-                # only add to the header line on the first iteration through
-                # the dictionary
-                if tmpcounter == 0:
-                    header.append(key)
-
-                if diagnosis in dictionary[key]:
-                    tmparray[index] = tmparray[index] + 1
-
-                index += 1
-
-            tmpcounter += 1
-
-            # break out of the loop early to prevent unnecessary comparisons
-            if diagnosis == '':
-                ptrows.append(tmparray)
-                brokeoutearly = True
-                break
-
-        if not brokeoutearly:
-            ptrows.append(tmparray)
+        ptrows.append(dictionary_lookup(row)[0])
 
     return (header, ptrows)
 
@@ -80,8 +54,9 @@ def compare_parallel(dictionary, infile):
     for key in dictionary:
         header.append(key)
 
-    global globaldict
-    globaldict = dictionary
+    # create global variable for access within dictionary_lookup()
+    global GLOBALDICT
+    GLOBALDICT = dictionary
 
     with Pool() as pool:
         result = pool.map(dictionary_lookup, rows)
@@ -99,16 +74,19 @@ def dictionary_lookup(row):
     row = row.strip()
     array = row.split(",")
 
-    tmparray = [0] * 1497
-    tmparray[0] = int(array[0])
-    tmparray[1] = int(array[-1])
+    # Initialize template array. Length is number of variables +2 for patient
+    # ID and mortality variables
+    tmparray = [0] * (NUM_INJURY_VAR + 2)
+    tmparray[0] = int(array[0])     # patient identifier
+    tmparray[1] = int(array[-1])    # mortality variable
 
     for diagnosis in array[1:]:
-        # index starts at 2 because first two columns are already filled
+        # index starts at 2 because first two columns are already filled with
+        # patient ID code and mortality
         index = 2
 
-        for key in globaldict:
-            if diagnosis in globaldict[key]:
+        for key in GLOBALDICT:
+            if diagnosis in GLOBALDICT[key]:
                 tmparray[index] = tmparray[index] + 1
 
             index += 1
@@ -131,7 +109,7 @@ def write_table_csv(header, ptrows):
     for row in ptrows:
         megaarray.append(row)
 
-    of = open("/src/injury_variables_only.csv", "w")
+    of = open("injury_variables_only.csv", "w")
     csv.writer(of, delimiter=',', lineterminator='\n').writerows(megaarray)
     of.close()
 
