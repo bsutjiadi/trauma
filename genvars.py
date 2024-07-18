@@ -97,12 +97,12 @@ def dictionary_lookup(row):
         # Assumptions: patient ID is first item in list, mortality variable is
         # the last element in the list
         tmparray = [0] * (NUM_INJURY_VAR + 2)
-        tmparray[0] = int(array[0])
+        tmparray[0] = array[0]
         tmparray[1] = int(array[-1])
         index = 2
     else:
         tmparray = [0] * (NUM_INJURY_VAR + 1)
-        tmparray[0] = int(array[0])
+        tmparray[0] = array[0]
         index = 1
 
     # Start at index 1 because it is assumed patient ID is the first item

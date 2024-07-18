@@ -9,7 +9,7 @@ def main():
 
     filename = sys.argv[1]
     data = pd.read_csv(filename)
-    X_data = data.drop(['inc_key', 'mortality'], axis=1)
+    X_data = data.drop(['inc_key', 'mortality'], axis=1, errors='ignore')
 
     predicted_mortality = xgbcomplete.predict_proba(X_data)[:, 1]
 
