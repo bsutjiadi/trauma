@@ -82,6 +82,31 @@ def compare_parallel(dictionary, infile):
     return header, ptrows
 
 
+# function intended to generate injury variable table from single input
+# pid is a string, diagnoses is a list of icd10 codes
+def compare_single(dictionary, pid, diagnoses):
+    global NUM_INJURY_VAR
+    NUM_INJURY_VAR = len(dictionary)
+
+    global MORTALITY_VAR_PRESENT
+    MORTALITY_VAR_PRESENT = False
+
+    header = ["inc_key"]
+    if MORTALITY_VAR_PRESENT:
+        header.append("mortality")
+    for key in dictionary:
+        header.append(key)
+
+    # create global variable for access within dictionary_lookup()
+    global GLOBALDICT
+    GLOBALDICT = dictionary
+
+    diagnoses.insert(0, pid)
+    row = ','.join(diagnoses)
+
+    return header, dictionary_lookup(row)[0]
+
+
 def dictionary_lookup(row):
     ptrows = []
     index = 0
