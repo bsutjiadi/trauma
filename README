@@ -1,0 +1,20 @@
+Input file requirements
+The input file must be structured in the following way.
+    1. The input file must be formated in comma separated value (.csv) format
+    2. The input file must not be empty
+    3. The file must contain a table that associates a patient ID with ICD-10
+       diagnoses
+        3a. The file must have a header line describing the contents of the
+            following lines
+        3b. The number of items in the header must match the number of items in
+            the entries
+        3c. There must be at least 1 entry in the table
+        3d. The maximum number of lines is specified in the constants.py
+        3e. The patient ID must be the first item in each entry
+        3f. The patient ID must not be empty, and must be of less than the max
+            length specified in constants.py
+        3g. The maximum number of ICD 10 codes per line is specified in the
+            constants.py file
+        3h. There SHOULD be no gap between diagnoses. Every diagnosis after a
+            blank diagnosis will be discarded and not used for inferrence. An
+            input file with gaps between diagnoses will pass validation.

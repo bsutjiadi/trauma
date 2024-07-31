@@ -33,6 +33,8 @@ def compare_serial(dictionary, infile):
 
     is_mortality_var_present(infile)
 
+    # File pointer points to first entry. Header line is consumed by the
+    #  mortality variable check function
     rows = infile.readlines()
     ptrows = []
 
@@ -59,6 +61,8 @@ def compare_parallel(dictionary, infile):
 
     is_mortality_var_present(infile)
 
+    # File pointer points to first entry. Header line is consumed by the
+    #  mortality variable check function
     rows = infile.readlines()
     ptrows = []
 
